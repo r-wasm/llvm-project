@@ -272,6 +272,12 @@ public:
       mlir::Value oper = std::get<1>(e.value());
       unsigned index = e.index();
       llvm::TypeSwitch<mlir::Type>(ty)
+          .template Case<mlir::IndexType>([&](mlir::IndexType indexTy) {
+            auto newTy = specifics->indexMemoryType(indexTy);
+            auto newOper = rewriter->create<mlir::arith::IndexCastOp>(loc, newTy, oper);
+            newInTys.push_back(newTy);
+            newOpers.push_back(newOper);
+          })
           .template Case<fir::BoxCharType>([&](fir::BoxCharType boxTy) {
             bool sret;
             if constexpr (std::is_same_v<std::decay_t<A>, fir::CallOp>) {
@@ -534,6 +540,7 @@ public:
     for (auto ty : func.getResults())
       if ((ty.isa<fir::BoxCharType>() && !noCharacterConversion) ||
           (fir::isa_complex(ty) && !noComplexConversion) ||
+          (ty.isa<mlir::IndexType>()) ||
           (ty.isa<mlir::IntegerType>() && hasCCallingConv)) {
         LLVM_DEBUG(llvm::dbgs() << "rewrite " << signature << " for target\n");
         return false;
@@ -542,6 +549,7 @@ public:
       if (((ty.isa<fir::BoxCharType>() || fir::isCharacterProcedureTuple(ty)) &&
            !noCharacterConversion) ||
           (fir::isa_complex(ty) && !noComplexConversion) ||
+          (ty.isa<mlir::IndexType>()) ||
           (ty.isa<mlir::IntegerType>() && hasCCallingConv)) {
         LLVM_DEBUG(llvm::dbgs() << "rewrite " << signature << " for target\n");
         return false;
@@ -624,6 +632,9 @@ public:
       auto ty = e.value();
       unsigned index = e.index();
       llvm::TypeSwitch<mlir::Type>(ty)
+          .Case<mlir::IndexType>([&](mlir::IndexType indexTy) {
+            newInTys.push_back(specifics->indexMemoryType(indexTy));
+          })
           .Case<fir::BoxCharType>([&](fir::BoxCharType boxTy) {
             if (noCharacterConversion) {
               newInTys.push_back(boxTy);

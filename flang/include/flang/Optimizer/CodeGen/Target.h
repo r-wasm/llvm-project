@@ -87,6 +87,9 @@ public:
   virtual Marshalling complexReturnType(mlir::Location loc,
                                         mlir::Type eleTy) const = 0;
 
+  // Type presentation of a `index` type value in memory.
+  virtual mlir::Type indexMemoryType(mlir::Type eleTy) const = 0;
+
   /// Type presentation of a `boxchar<n>` type value in memory.
   virtual mlir::Type boxcharMemoryType(mlir::Type eleTy) const = 0;
 

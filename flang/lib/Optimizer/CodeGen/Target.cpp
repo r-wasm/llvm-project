@@ -58,6 +58,10 @@ struct GenericTarget : public CodeGenSpecifics {
                                 mlir::TypeRange{eleTy, eleTy});
   }
 
+  mlir::Type indexMemoryType(mlir::Type eleTy) const override {
+    return mlir::IntegerType::get(eleTy.getContext(), S::defaultWidth);
+  }
+
   mlir::Type boxcharMemoryType(mlir::Type eleTy) const override {
     auto idxTy = mlir::IntegerType::get(eleTy.getContext(), S::defaultWidth);
     auto ptrTy = fir::ReferenceType::get(eleTy);
