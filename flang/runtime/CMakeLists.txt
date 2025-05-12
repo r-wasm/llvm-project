@@ -62,12 +62,14 @@ endif()
 set(linked_libraries FortranDecimal)
 
 # function checks
-find_package(Backtrace)
-set(HAVE_BACKTRACE ${Backtrace_FOUND})
-set(BACKTRACE_HEADER ${Backtrace_HEADER})
-if(HAVE_BACKTRACE)
-  list(APPEND linked_libraries ${Backtrace_LIBRARY})
-endif()
+#find_package(Backtrace)
+#set(HAVE_BACKTRACE ${Backtrace_FOUND})
+#set(BACKTRACE_HEADER ${Backtrace_HEADER})
+#if(HAVE_BACKTRACE)
+#  list(APPEND linked_libraries ${Backtrace_LIBRARY})
+#endif()
+
+set(HAVE_BACKTRACE "NO")
 
 include(CheckCXXSymbolExists)
 include(CheckCXXSourceCompiles)
@@ -272,59 +274,8 @@ if (NOT TARGET FortranFloat128Math)
   endif()
 endif()
 
-if (NOT DEFINED MSVC)
-  add_flang_library(FortranRuntime
-    ${sources}
-    LINK_LIBS
-    ${linked_libraries}
-
-    INSTALL_WITH_TOOLCHAIN
-  )
-else()
-  add_flang_library(FortranRuntime
-    ${sources}
-    LINK_LIBS
-    ${linked_libraries}
-  )
-  set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
-  add_flang_library(FortranRuntime.static ${sources}
-    LINK_LIBS
-    FortranDecimal.static
-    INSTALL_WITH_TOOLCHAIN)
-  set_target_properties(FortranRuntime.static PROPERTIES FOLDER "Flang/Runtime Libraries")
-  set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
-  add_flang_library(FortranRuntime.dynamic ${sources}
-    LINK_LIBS
-    FortranDecimal.dynamic
-    INSTALL_WITH_TOOLCHAIN)
-  set_target_properties(FortranRuntime.dynamic PROPERTIES FOLDER "Flang/Runtime Libraries")
-  set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDebug)
-  add_flang_library(FortranRuntime.static_dbg ${sources}
-    LINK_LIBS
-    FortranDecimal.static_dbg
-    INSTALL_WITH_TOOLCHAIN)
-  set_target_properties(FortranRuntime.static_dbg PROPERTIES FOLDER "Flang/Runtime Libraries")
-  set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreadedDebugDLL)
-  add_flang_library(FortranRuntime.dynamic_dbg ${sources}
-    LINK_LIBS
-    FortranDecimal.dynamic_dbg
-    INSTALL_WITH_TOOLCHAIN)
-  set_target_properties(FortranRuntime.dynamic_dbg PROPERTIES FOLDER "Flang/Runtime Libraries")
-  add_dependencies(FortranRuntime FortranRuntime.static FortranRuntime.dynamic
-    FortranRuntime.static_dbg FortranRuntime.dynamic_dbg)
-endif()
-set_target_properties(FortranRuntime PROPERTIES FOLDER "Flang/Runtime Libraries")
-
-# If FortranRuntime is part of a Flang build (and not a separate build) then
-# add dependency to make sure that Fortran runtime library is being built after
-# we have the Flang compiler available.  This also includes the MODULE files
-# that compile when the 'flang' target is built.
-#
-# TODO: This is a workaround and should be updated when runtime build procedure
-# is changed to a regular runtime build.  See discussion in PR #95388.
-if (TARGET flang AND TARGET module_files)
-  add_dependencies(FortranRuntime flang module_files)
-endif()
+# Disable FortranRuntime for now. In the future we can switch to the new
+# LLVM_ENABLE_RUNTIMES=flang-rt mechanism to build the Fortran runtime.
 
 if (FLANG_CUF_RUNTIME)
   add_subdirectory(CUDA)
