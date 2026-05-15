@@ -39,8 +39,17 @@ typedef unsigned char CFI_rank_t;
 
 /* This type is probably larger than a default Fortran INTEGER
  * and should be used for all array indexing and loop bound calculations.
+ *
+ * wasm32-emscripten patch: force `long long` (NOT int64_t!) so that
+ * flang's host-side type reflection sees a type that is DISTINCT from
+ * `long` on Linux x86-64 LP64 (where int64_t and long alias).  This
+ * routes through getModel<long long> in RTBuilder.h / DescriptorModel.h
+ * -- which is NOT r-wasm-patched to i32 -- so it correctly emits i64.
+ * Meanwhile the runtime sees `long long` (8 bytes on wasm32 too).
+ * Result: descriptor struct AND PointerSetBounds-style runtime call
+ * signatures all consistently use i64 across flang and runtime.
  */
-typedef ptrdiff_t CFI_index_t;
+typedef long long CFI_index_t;
 
 typedef unsigned char CFI_attribute_t;
 #define CFI_attribute_pointer 1
@@ -148,7 +157,13 @@ extern "C++" template <typename T> struct FlexibleArray : T {
   /* These three members must appear first, \
    * in exactly this order. */ \
   void *base_addr; \
-  size_t elem_len; /* element size in bytes */ \
+  unsigned long long elem_len; /* wasm32-emscripten: was size_t. \
+   * unsigned long long is DISTINCT from `unsigned long` on Linux \
+   * x86-64 LP64 (where uint64_t aliases unsigned long), so flang's \
+   * type reflection routes this through getModel<unsigned long long> \
+   * in DescriptorModel.h / RTBuilder.h -- NOT r-wasm-patched to i32. \
+   * Result: elem_len consistently i64 in both flang's descriptor \
+   * layout AND the runtime's struct layout. */ \
   int version; /* == CFI_VERSION */ \
   CFI_rank_t rank; /* [0 .. CFI_MAX_RANK] */ \
   CFI_type_t type; \

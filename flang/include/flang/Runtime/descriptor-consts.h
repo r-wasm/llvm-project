@@ -29,7 +29,13 @@ class DerivedType;
 
 namespace Fortran::runtime {
 class Descriptor;
-using SubscriptValue = ISO::CFI_index_t;
+// wasm32-emscripten: decouple SubscriptValue (for function args) from
+// CFI_index_t (for struct dim fields).  Stock r-wasm flang emits
+// SubscriptValue via RTBuilder.h getModel<long>=i32 (r-wasm patch),
+// so runtime must declare it as 4-byte int.  CFI_index_t is forced
+// to `long long` in ISO_Fortran_binding.h for the descriptor STRUCT
+// to be 8-byte-fielded (matching flang's host-LP64-leaked emission).
+using SubscriptValue = int;
 using common::TypeCategory;
 
 /// Returns size in bytes of the descriptor (not the data)

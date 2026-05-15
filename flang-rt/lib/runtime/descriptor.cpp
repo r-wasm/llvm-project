@@ -34,15 +34,24 @@ RT_API_ATTRS void Descriptor::Establish(TypeCode t, std::size_t elementBytes,
     void *p, int rank, const SubscriptValue *extent,
     ISO::CFI_attribute_t attribute, bool addendum) {
   Terminator terminator{__FILE__, __LINE__};
+  // wasm32-emscripten patch: SubscriptValue is `int` (i32, matches
+  // stock r-wasm flang's RTBuilder.h emission), but CFI_index_t is
+  // `long long` (i64, matches stock flang's descriptor struct
+  // emission).  ISO::Verify/Establish C funcs take CFI_index_t arrays
+  // -- convert the SubscriptValue array to CFI_index_t for the call.
+  ISO::CFI_index_t cfiExtent[CFI_MAX_RANK];
+  for (int i = 0; i < rank && i < CFI_MAX_RANK; ++i) {
+    cfiExtent[i] = extent[i];
+  }
   int cfiStatus{ISO::VerifyEstablishParameters(&raw_, p, attribute, t.raw(),
-      elementBytes, rank, extent, /*external=*/false)};
+      elementBytes, rank, cfiExtent, /*external=*/false)};
   if (cfiStatus != CFI_SUCCESS) {
     terminator.Crash(
         "Descriptor::Establish: CFI_establish returned %d for CFI_type_t(%d)",
         cfiStatus, t.raw());
   }
   ISO::EstablishDescriptor(
-      &raw_, p, attribute, t.raw(), elementBytes, rank, extent);
+      &raw_, p, attribute, t.raw(), elementBytes, rank, cfiExtent);
   if (elementBytes == 0) {
     raw_.elem_len = 0;
     // Reset byte strides of the dimensions, since EstablishDescriptor()
@@ -86,8 +95,13 @@ RT_API_ATTRS void Descriptor::Establish(const typeInfo::DerivedType &dt,
     void *p, int rank, const SubscriptValue *extent,
     ISO::CFI_attribute_t attribute) {
   std::size_t elementBytes{dt.sizeInBytes()};
+  // wasm32-emscripten patch: convert SubscriptValue (int) -> CFI_index_t (long long)
+  ISO::CFI_index_t cfiExtent[CFI_MAX_RANK];
+  for (int i = 0; i < rank && i < CFI_MAX_RANK; ++i) {
+    cfiExtent[i] = extent[i];
+  }
   ISO::EstablishDescriptor(
-      &raw_, p, attribute, CFI_type_struct, elementBytes, rank, extent);
+      &raw_, p, attribute, CFI_type_struct, elementBytes, rank, cfiExtent);
   if (elementBytes == 0) {
     raw_.elem_len = 0;
     // Reset byte strides of the dimensions, since EstablishDescriptor()
@@ -249,7 +263,17 @@ RT_API_ATTRS bool Descriptor::EstablishPointerSection(const Descriptor &source,
       return false;
     }
   }
-  return CFI_section(&raw_, &source.raw_, lower, upper, stride) == CFI_SUCCESS;
+  // wasm32-emscripten patch: convert SubscriptValue arrays to CFI_index_t arrays
+  ISO::CFI_index_t cfiLower[CFI_MAX_RANK], cfiUpper[CFI_MAX_RANK], cfiStride[CFI_MAX_RANK];
+  for (int i = 0; i < raw_.rank && i < CFI_MAX_RANK; ++i) {
+    cfiLower[i] = lower ? lower[i] : 0;
+    cfiUpper[i] = upper ? upper[i] : 0;
+    cfiStride[i] = stride ? stride[i] : 0;
+  }
+  return CFI_section(&raw_, &source.raw_,
+      lower ? cfiLower : nullptr,
+      upper ? cfiUpper : nullptr,
+      stride ? cfiStride : nullptr) == CFI_SUCCESS;
 }
 
 RT_API_ATTRS void Descriptor::ApplyMold(const Descriptor &mold, int rank) {
