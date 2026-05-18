@@ -56,7 +56,7 @@ public:
   // types. Indexing into other aggregate types is more flexible.
   mlir::Type offsetType() const;
 
-  // i64 can be used to index into aggregates like arrays
+  // Used to index into aggregates like arrays
   mlir::Type indexType() const;
 
   // fir.type<name(p : TY'...){f : TY...}>  -->  llvm<"%name = { ty... }">

@@ -144,9 +144,9 @@ mlir::Type LLVMTypeConverter::offsetType() const {
   return mlir::IntegerType::get(&getContext(), 32);
 }
 
-// i64 can be used to index into aggregates like arrays
+// Used to index into aggregates like arrays
 mlir::Type LLVMTypeConverter::indexType() const {
-  return mlir::IntegerType::get(&getContext(), 64);
+  return mlir::IntegerType::get(&getContext(), getIndexTypeBitwidth());
 }
 
 // fir.type<name(p : TY'...){f : TY...}>  -->  llvm<"%name = { ty... }">

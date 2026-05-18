@@ -58,7 +58,7 @@ constexpr TypeBuilderFunc getModel<int>() {
 template <>
 constexpr TypeBuilderFunc getModel<unsigned long>() {
   return [](mlir::MLIRContext *context) -> mlir::Type {
-    return mlir::IntegerType::get(context, sizeof(unsigned long) * 8);
+    return mlir::IntegerType::get(context, 8 * 4);
   };
 }
 template <>
@@ -90,7 +90,7 @@ constexpr TypeBuilderFunc getModel<Fortran::ISO::CFI_type_t>() {
 template <>
 constexpr TypeBuilderFunc getModel<long>() {
   return [](mlir::MLIRContext *context) -> mlir::Type {
-    return mlir::IntegerType::get(context, sizeof(long) * 8);
+    return mlir::IntegerType::get(context, 8 * 4);
   };
 }
 template <>

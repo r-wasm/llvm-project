@@ -23,7 +23,7 @@
 #define _CFI_ALLOCATOR_IDX_MASK 0b00001110
 
 namespace Fortran::runtime::typeInfo {
-using TypeParameterValue = std::int64_t;
+using TypeParameterValue = long long;
 class DerivedType;
 } // namespace Fortran::runtime::typeInfo
 
