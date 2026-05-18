@@ -98,6 +98,7 @@ private:
 // instances.  The presence of this structure is encoded in the
 // CFI_cdesc_t.extra field, and the number of elements in the len_[]
 // array is determined by derivedType_->LenParameters().
+#pragma pack(push, 4)
 class DescriptorAddendum {
 public:
   explicit RT_API_ATTRS DescriptorAddendum(
@@ -144,6 +145,7 @@ private:
   // parameters of components.  The values have been truncated to the LEN
   // type parameter's type, if shorter than 64 bits, then sign-extended.
 };
+#pragma pack(pop)
 
 // A C++ view of a standard descriptor object.
 class Descriptor {

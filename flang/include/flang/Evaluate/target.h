@@ -149,9 +149,9 @@ private:
   bool hasSubnormalFlushingControl_[maxKind + 1]{};
   bool hasSubnormalExceptionSupport_[maxKind + 1]{};
   Rounding roundingMode_{defaultRounding};
-  std::size_t procedurePointerByteSize_{8};
-  std::size_t procedurePointerAlignment_{8};
-  std::size_t descriptorAlignment_{8};
+  std::size_t procedurePointerByteSize_{4};
+  std::size_t procedurePointerAlignment_{4};
+  std::size_t descriptorAlignment_{4};
   std::size_t maxByteSize_{8 /*at least*/};
   std::size_t maxAlignment_{8 /*at least*/};
   std::string compilerOptionsString_;

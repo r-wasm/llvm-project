@@ -23,7 +23,7 @@
 #define _CFI_ALLOCATOR_IDX_MASK 0b00001110
 
 namespace Fortran::runtime::typeInfo {
-using TypeParameterValue = std::int64_t;
+using TypeParameterValue = long long;
 class DerivedType;
 } // namespace Fortran::runtime::typeInfo
 
@@ -62,11 +62,11 @@ static constexpr RT_API_ATTRS std::size_t MaxDescriptorSizeInBytes(
   //   bytes) typeInfo::TypeParameterValue len_[lenParameters]; (int64_t -> 8
   //   bytes)
   // }
-  std::size_t bytes{24u + rank * 24u};
+  std::size_t bytes{16u + rank * 12u};
   if (addendum || lengthTypeParameters > 0) {
     if (lengthTypeParameters < 1)
       lengthTypeParameters = 1;
-    bytes += 8u + static_cast<std::size_t>(lengthTypeParameters) * 8u;
+    bytes += 4u + static_cast<std::size_t>(lengthTypeParameters) * 8u;
   }
   return bytes;
 }
