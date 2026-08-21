@@ -84,6 +84,7 @@ private:
   void calculateCustomSections();
   void calculateTypes();
   void createOutputSegments();
+  void allocateCommonSymbols();
   OutputSegment *createOutputSegment(StringRef name);
   void combineOutputSegments();
   void layoutMemory();
@@ -1023,6 +1024,48 @@ OutputSegment *Writer::createOutputSegment(StringRef name) {
   return s;
 }
 
+void Writer::allocateCommonSymbols() {
+  if (ctx.arg.relocatable)
+    return;
+
+  std::vector<CommonSymbol *> commons;
+  for (Symbol *sym : symtab->symbols())
+    if (auto *c = dyn_cast<CommonSymbol>(sym))
+      if (c->isLive())
+        commons.push_back(c);
+
+  if (commons.empty())
+    return;
+
+  log("-- allocateCommonSymbols");
+
+  uint64_t size = 0;
+  uint32_t alignLog2 = 0;
+
+  for (CommonSymbol *c : commons) {
+    alignLog2 = std::max(alignLog2, c->getAlignment());
+    size = alignTo(size, 1ULL << c->getAlignment());
+    size += c->getSize();
+  }
+
+  auto *commonSeg = make<SyntheticInputSegment>(".bss.common", alignLog2, 0);
+  commonSeg->setSize(size);
+  commonSeg->live = true;
+  ctx.syntheticInputSegments.push_back(commonSeg);
+
+  uint64_t offset = 0;
+  for (CommonSymbol *c : commons) {
+    uint64_t size = c->getSize();
+    uint32_t alignLog2 = c->getAlignment();
+    offset = alignTo(offset, 1ULL << alignLog2);
+    log(formatv("allocateCommonSymbol: {0} size={1} align={2} offset={3}",
+                c->getName(), size, alignLog2, offset));
+    replaceSymbol<DefinedData>(c, c->getName(), c->flags, c->getFile(),
+                               commonSeg, offset, size);
+    offset += size;
+  }
+}
+
 void Writer::createOutputSegments() {
   for (ObjFile *file : ctx.objectFiles) {
     for (InputChunk *segment : file->segments) {
@@ -1044,7 +1087,23 @@ void Writer::createOutputSegments() {
     }
   }
 
-  // Sort segments by type, placing .bss last
+  // Process synthetic segments
+  for (InputChunk *segment : ctx.syntheticInputSegments) {
+    if (!segment->live)
+      continue;
+    StringRef name = getOutputDataSegmentName(*segment);
+    OutputSegment *s = nullptr;
+    if (!segmentMap.contains(name))
+      segmentMap[name] = createOutputSegment(name);
+    s = segmentMap[name];
+    s->addInputSegment(segment);
+  }
+
+  // Sort segments by type, placing .bss last. Note that one requirement of
+  // this sort is that all eventually-active segments must come first in
+  // case `combineActiveOutputSegments` is used. When combined the relative
+  // address of the data segment must be 0 (to be compatible with PIC and a
+  // lack of extended-const).
   llvm::stable_sort(segments,
                     [](const OutputSegment *a, const OutputSegment *b) {
                       auto order = [](StringRef name) {
@@ -1710,6 +1769,8 @@ void Writer::run() {
   if (!ctx.isPic && ctx.sym.definedTableBase)
     ctx.sym.definedTableBase->setVA(ctx.arg.tableBase);
 
+  log("-- allocateCommonSymbols");
+  allocateCommonSymbols();
   log("-- createOutputSegments");
   createOutputSegments();
   log("-- createSyntheticSections");
