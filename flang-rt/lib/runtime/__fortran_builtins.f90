@@ -44,11 +44,11 @@ module __fortran_builtins
   integer, parameter :: int64 = selected_int_kind(18)
 
   type, bind(c), public :: __builtin_c_ptr
-    integer(kind=int64), private :: __address
+    integer(kind=4), private :: __address
   end type
 
   type, bind(c), public :: __builtin_c_funptr
-    integer(kind=int64), private :: __address
+    integer(kind=4), private :: __address
   end type
 
   type, public :: __builtin_event_type
