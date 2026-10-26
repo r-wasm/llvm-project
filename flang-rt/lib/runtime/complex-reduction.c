@@ -104,7 +104,7 @@ static CFloat128ComplexType CMPLXF128(CFloat128Type r, CFloat128Type i) {
 
 #define CPP_NAME(name) Cpp##name
 #define ADAPT_REDUCTION(name, cComplex, cpptype, cmplxMacro, ARGS, ARG_NAMES) \
-  struct cpptype RTNAME(CPP_NAME(name))(struct cpptype *, ARGS); \
+  void RTNAME(CPP_NAME(name))(struct cpptype *, ARGS); \
   cComplex RTNAME(name)(ARGS) { \
     struct cpptype result; \
     RTNAME(CPP_NAME(name))(&result, ARG_NAMES); \
