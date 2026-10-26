@@ -577,7 +577,6 @@ union SymbolUnion {
   alignas(UndefinedTable) char j[sizeof(UndefinedTable)];
   alignas(SectionSymbol) char k[sizeof(SectionSymbol)];
   alignas(SharedFunctionSymbol) char l[sizeof(SharedFunctionSymbol)];
-  alignas(SharedTagSymbol) char m[sizeof(SharedTagSymbol)];
   alignas(CommonSymbol) char n[sizeof(CommonSymbol)];
 };
 
