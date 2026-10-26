@@ -37,6 +37,7 @@ class GlobalSymbol;
 class DefinedFunction;
 class UndefinedGlobal;
 class TableSymbol;
+class InputChunk;
 
 // For --unresolved-symbols.
 enum class UnresolvedPolicy { ReportError, Warn, Ignore, ImportDynamic };
@@ -145,6 +146,7 @@ struct Ctx {
   llvm::SmallVector<InputFunction *, 0> syntheticFunctions;
   llvm::SmallVector<InputGlobal *, 0> syntheticGlobals;
   llvm::SmallVector<InputTable *, 0> syntheticTables;
+  llvm::SmallVector<InputChunk *, 0> syntheticInputSegments;
 
   // linker-generated symbols
   struct WasmSym {

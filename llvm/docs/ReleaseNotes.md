@@ -156,6 +156,11 @@ Changes to the MIPS Backend
 * `-mcpu=i6400` and `-mcpu=i6500` were added.
 * Added support for `mipsel-windows-gnu` and `mipsel-windows-msvc` targets.
 
+* Added support for emitting common symbols (.comm) using the WASM_SYMBOL_BINDING_COMMON
+  flag (see https://github.com/WebAssembly/tool-conventions/pull/267)
+
+### Changes to the Windows Target
+
 Changes to the PowerPC Backend
 ------------------------------
 
@@ -219,7 +224,7 @@ Changes to the RISC-V Backend
 * `-mcpu=sifive-p870` was added.
 * Adds assembler support for the Andes `XAndesvpackfph` (Andes Vector Packed FP16 extension).
 * Adds assembler support for the Andes `XAndesvdot` (Andes Vector Dot Product extension).
-* Adds assembler support for the standard `Q` (Quad-Precision Floating Point) 
+* Adds assembler support for the standard `Q` (Quad-Precision Floating Point)
   extension.
 * Adds experimental assembler support for the SiFive Xsfmm* Attached Matrix
   Extensions.
